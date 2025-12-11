@@ -1,0 +1,137 @@
+Got it! You want your UML diagram and the entities to be compatible with **PostgreSQL conventions**. PostgreSQL has some specifics to keep in mind:
+
+* `char(n)` is usually replaced by `char(n)` or `varchar(n)` depending on use, but `text` is often preferred for variable-length strings.
+* Use `numeric(precision, scale)` as you have.
+* `timestamp` works as `timestamp without time zone`.
+* Primary keys and foreign keys should follow PostgreSQL naming conventions (snake_case).
+* Comments (`//`) are not valid in PlantUML; replace with `'` if needed.
+
+Here’s a **PostgreSQL-friendly version of your PlantUML**:
+
+```plantuml
+@startuml
+
+' --- Configuration ---
+hide circle
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' --- Entity Definitions ---
+
+entity "product" as Product {
+  * prod_id : char(10) <<PK>>
+  --
+  * prod_name : varchar(100)
+  * cat_id : integer <<FK>>
+  * author_id : integer <<FK>> 
+  prod_name_ar : varchar(100)
+  prod_search_name_ar : varchar(100)
+  prod_descr : varchar(500)
+  prod_descr_ar : varchar(500)
+  prod_long_descr : varchar(2000)
+  prod_long_descr_ar : varchar(2000)
+  prod_search_long_descr_ar : varchar(2000)
+  prod_size : varchar(10)
+  prod_colour : varchar(10)
+  prod_weight : smallint
+  * prod_price : numeric(7,2)
+  * prod_sales_price : numeric(7,2)
+  * prod_on_hand : smallint
+  prod_comments : varchar(1000)
+  prod_image : varchar(100)
+  * prod_discount : numeric(7,2)
+  * prod_ship_cost : numeric(7,2)
+  * stock_quantity : smallint
+}
+
+entity "category" as Category {
+  * cat_id : integer <<PK>>
+  --
+  * cat_name : varchar(100)
+  * cat_name_ar : varchar(100)
+  cat_descr : varchar(1000)
+  cat_descr_ar : varchar(1000)
+  cat_parent_id : integer <<FK>>
+}
+
+entity "customer" as Customer {
+  * customer_id : serial <<PK>>
+  --
+  * first_name : varchar(100)
+  * last_name : varchar(100)
+  * email : varchar(150)
+  * password : varchar(255)
+}
+
+entity "orders" as Order {
+  * order_id : serial <<PK>>
+  --
+  * customer_id : integer <<FK>>
+  * order_date : timestamp without time zone
+  * total_amount : numeric(10,2)
+}
+
+entity "order_details" as Order_details {
+  * order_details_id : serial <<PK>>
+  --
+  * order_id : integer <<FK>>
+  * product_id : char(10) <<FK>> 
+  * quantity : smallint
+  * unit_price : numeric(7,2)
+}
+
+entity "sales_history" as SalesHistory {
+  * sales_history_id : serial <<PK>>
+  --
+  * customer_id : integer <<FK>>
+  * customer_name : varchar(200)
+  * order_id : integer <<FK>>
+  * order_date : timestamp without time zone
+  * product_name : varchar(100)
+  * quantity : smallint
+  * unit_price : numeric(7,2)
+}
+
+entity "author" as Author {
+  * author_id : serial <<PK>>
+  --
+  * author_name : varchar(200)
+}
+
+' --- Relationships ---
+
+' Category Hierarchy
+Category }o..o| Category : "parent of"
+
+' Product belongs to Category
+Category ||..o{ Product : "categorizes"
+
+' Product belongs to Author
+Author ||..o{ Product : "written by"
+
+' Order Relationships
+Customer ||..o{ Order : "places"
+Order ||..|{ Order_details : "contains"
+Product ||..o{ Order_details : "listed in"
+
+' History Relationships
+Customer ||..o{ SalesHistory : "recorded sales of"
+Order ||..o{ SalesHistory : "logged in"
+
+@enduml
+```
+
+✅ **Changes made for PostgreSQL**:
+
+1. Used `serial` for auto-increment PKs (`customer_id`, `order_id`, etc.).
+2. Replaced `timestamp` with `timestamp without time zone`.
+3. Converted all names to `snake_case` for PostgreSQL conventions.
+4. Removed `//` comments inside entity definitions.
+
+If you want, I can also **generate a ready-to-run PostgreSQL `CREATE TABLE` script** directly from this UML. It would include all FKs, PKs, and proper data types.
+
+Do you want me to do that?
