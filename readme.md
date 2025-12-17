@@ -278,6 +278,11 @@ Since we are using **PostgreSQL**, the standard and most powerful way to achieve
 This uses the standard `ILIKE` operator, which is case-insensitive in PostgreSQL and is more portable than vendor-specific FTS syntax.
 
 ```sql
+CREATE INDEX idx_prod_name ON product (prod_name);
+CREATE INDEX idx_prod_descr ON product (prod_descr);
+CREATE INDEX idx_prod_long_descr ON product (prod_long_descr);
+CREATE INDEX idx_prod_name_ar ON product (prod_name_ar);
+
 SELECT
     ProdID,
     ProdName,
@@ -286,21 +291,24 @@ FROM
     Product
 WHERE
     -- Check ProdName (case insensitive)
-    ProdName ILIKE '%camera%' 
+    prod_name ILIKE '%camera%' 
     -- Check ProdDescr (case insensitive)
-    OR ProdDescr ILIKE '%camera%'
+    OR prod_descr ILIKE '%camera%'
     -- Check ProdLongDescr (case insensitive)
-    OR ProdLongDescr ILIKE '%camera%'
+    OR prod_long_descr ILIKE '%camera%'
     -- Optionally check translated fields if needed
-    OR ProdNameAr ILIKE '%camera%';
+    OR prod_name_ar ILIKE '%camera%';
 ```
 
 OR **Full-Text Search (FTS)**
 ```sql
+CREATE FULLTEXT INDEX idx_text_search
+ON product (prod_name,prod_descr,prod_long_descr);
+
 Select *
 from Product 
 where 
-Match(ProdName,ProdDesc,ProdLogDescr) Against('camera');
+Match(prod_name,prod_descr,prod_long_descr) Against('camera');
 ``` 
 
 
@@ -369,4 +377,15 @@ AND p.product_id NOT IN (
     FROM SalesHistory
     WHERE customer_id = <customer_id>
 );
+```
+---
+## 7. Lock the entire row in table product with product_id = 211
+```sql
+BEGIN;
+
+SELECT *
+FROM product
+WHERE product_id = 211
+FOR UPDATE;
+
 ```
